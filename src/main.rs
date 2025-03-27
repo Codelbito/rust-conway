@@ -1,10 +1,12 @@
 use rand::Rng;
-use sdl2::{pixels::Color, rect::Rect, render::Canvas, video::Window};
+use sdl2::{
+    event::Event, keyboard::Keycode, pixels::Color, rect::Rect, render::Canvas, video::Window,
+};
 use std::{thread, time::Duration};
-const WIDTH: usize = 100;
-const HEIGHT: usize = 100;
+const WIDTH: usize = 300;
+const HEIGHT: usize = 150;
 const CELL_SIZE: u32 = 5;
-const DELAY_MS: u64 = 10;
+const DELAY_MS: u64 = 100;
 
 struct GameOfLife {
     grid: Vec<bool>,
@@ -45,7 +47,6 @@ impl GameOfLife {
     }
 
     fn step(&mut self) {
-        println!("stepping forward");
         let mut new_grid = self.grid.clone();
         for y in 0..HEIGHT {
             for x in 0..WIDTH {
@@ -96,7 +97,25 @@ fn main() {
     let mut canvas = window.into_canvas().build().unwrap();
 
     let mut game = GameOfLife::new();
-    loop {
+    let mut event_pump = sdl_context.event_pump().unwrap();
+
+    'running: loop {
+        for event in event_pump.poll_iter() {
+            match event {
+                Event::Quit { .. } => {
+                    println!("close icon detected, quitting.");
+                    break 'running;
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::Q),
+                    ..
+                } => {
+                    println!("Q key pressed, quitting.");
+                    break 'running;
+                }
+                _ => {}
+            }
+        }
         game.step();
         draw_grid(&mut canvas, &game);
         thread::sleep(Duration::from_millis(DELAY_MS));
